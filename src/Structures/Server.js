@@ -1,25 +1,8 @@
-const Constants = require('../util/Constants');
-const DataStore = require('../util/DataStore');
-const User = require('./User');
-const TextChannel = require('./TextChannel');
-const VoiceChannel = require('./VoiceChannel');
-
-class ServerDataStore extends DataStore {
-	constructor() {
-		super();
-
-		this._members = {};
-		this._channels = {};
-	}
-
-	get members() {
-		return Object.values(this._members);
-	}
-
-	get channels() {
-		return Object.values(this._channels);
-	}
-}
+const ServerDataStore = require('../DataStore/ServerDataStore'),
+      User            = require('./User'),
+      Role            = require('./Role'),
+      TextChannel     = require('./TextChannel'),
+      VoiceChannel    = require('./VoiceChannel');
 
 class Server {
 	constructor(client, data) {
@@ -49,14 +32,14 @@ class Server {
 			}
 		}
 
-		this.name = data.name || this.name;
-		this.icon = data.icon || this.icon;
-		this.region = data.region || this.region;
-		this.afk_timeout = data.afk_timeout || this.afk_timeout;
-		this.member_count = data.member_count || this.member_count;
-		this.owner_id = data.owner_id || this.owner_id;
-		this.id = data.id || this.id;
-		this.joined_at = data.joined_at || this.joined_at;
+		this.name           = data.name || this.name;
+		this.icon           = data.icon || this.icon;
+		this.region         = data.region || this.region;
+		this.afk_timeout    = data.afk_timeout || this.afk_timeout;
+		this.member_count   = data.member_count || this.member_count;
+		this.owner_id       = data.owner_id || this.owner_id;
+		this.id             = data.id || this.id;
+		this.joined_at      = data.joined_at || this.joined_at;
 		this.afk_channel_id = data.afk_channel_id || this.afk_channel_id;
 
 		if (!this.store) {
@@ -75,6 +58,12 @@ class Server {
 					this.addChannel(channel);
 				}
 			}
+
+			if (data.roles) {
+				for (let role of data.roles) {
+					this.store.add('roles', new Role(this.client, this, role));
+				}
+			}
 		}
 	}
 
@@ -88,6 +77,10 @@ class Server {
 
 	get channels() {
 		return this.store.channels;
+	}
+
+	get roles() {
+		return this.store.roles;
 	}
 }
 

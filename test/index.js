@@ -1,15 +1,14 @@
 'use strict';
-const Discord = require('../');
-const client = new Discord.Client({
-	logging: {
-		enabled: true,
-	},
-});
-const TAG = 'testscript';
+const Discord = require('../src'),
+      client  = new Discord.Client({ logging: { enabled: true } }),
+      TAG     = 'testscript';
 
-async function go() {
-	client.login(process.env.ds_email, process.env.ds_password)
-		.then(ready)
+function go() {
+	let login = process.env.ds_token
+		? client.login(process.env.ds_token)
+		: client.login(process.env.ds_email, process.env.ds_password);
+
+	login.then(ready)
 		.catch(console.log);
 
 	client.on(Discord.Constants.Events.SERVER_CREATE, server => {
@@ -28,7 +27,13 @@ async function go() {
 
 function ready(token) {
 	client.logger.log(TAG, 'connected with token ' + token);
-	console.log(client.servers[0].channels[0]);
+
+	let server = client.getServersByName(process.argv[2])[0];
+
+	console.log("Server: ", server);
+	console.log("Roles: ", server.roles.map(role => role.name));
+
+	//console.log(client.servers[0].channels[0]);
 }
 
 function amount(prop) {

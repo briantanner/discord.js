@@ -4,23 +4,27 @@
  * shutdown of it
  */
 
-const Constants = require('../util/Constants');
-const ClientWebSocket = require('./WebSocket/ClientWebSocket');
-const TAG = 'manager';
+const Constants       = require('../util/Constants'),
+      ClientWebSocket = require('./WebSocket/ClientWebSocket'),
+      TAG             = 'manager';
 
 class ClientManager {
 	constructor(client) {
-		this.client = client;
-		this.state = Constants.ConnectionState.NOT_STARTED;
-		this.gateway = null;
+		this.client    = client;
+		this.state     = Constants.ConnectionState.NOT_STARTED;
+		this.gateway   = null;
 		this.intervals = {
 			keepAlive: null,
-			other: [],
+			other:     [],
 		};
 	}
 
-	async registerTokenAndConnect(token) {
-		return this.connectToWebSocket(this.client.api.token = token);
+	registerTokenAndConnect(token) {
+		return new Promise((resolve, reject) => {
+			this.client.api.token = token;
+
+			this.connectToWebSocket().then(resolve).catch(reject);
+		});
 	}
 
 	disconnectedFromWebSocket() {
@@ -42,7 +46,7 @@ class ClientManager {
 			if (this.client.websocket) {
 				this.client.websocket.send({
 					op: 1,
-					d: Date.now(),
+					d:  Date.now(),
 				});
 			} else {
 				clearInterval(this.intervals.keepAlive);
@@ -50,8 +54,8 @@ class ClientManager {
 		}, interval);
 	}
 
-	async connectToWebSocket(token) {
-		return new Promise(async (resolve, reject) => {
+	connectToWebSocket() {
+		return new Promise((resolve, reject) => {
 			// if there is no token, fail
 			if (!this.client.api.token) {
 				throw Constants.Errors.NO_TOKEN;
@@ -71,13 +75,16 @@ class ClientManager {
 
 			try {
 				this.client.logger.log(TAG, 'finding gateway');
-				this.gateway = await this.client.api.getGateway();
-				this.client.logger.log(TAG, 'connecting to gateway ' + this.gateway);
-				this.client.websocket = new ClientWebSocket(this.client, this.gateway, resolve, reject);
+
+				this.client.api.getGateway()
+					.then(url => {
+						this.gateway = url;
+						this.client.logger.log(TAG, 'connecting to gateway ' + this.gateway);
+						this.client.websocket = new ClientWebSocket(this.client, this.gateway, resolve, reject);
+					});
 			} catch (e) {
 				return reject(e);
 			}
-
 		});
 	}
 }

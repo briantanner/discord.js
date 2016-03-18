@@ -1,11 +1,10 @@
-const request = require('superagent');
-const Constants = require('../../util/Constants');
-const UserAgentManager = require('./UserAgentManager');
+const request          = require('superagent'),
+      Constants        = require('../../util/Constants'),
+      UserAgentManager = require('./UserAgentManager');
 
 class ClientAPI {
-
 	constructor(client) {
-		this.client = client;
+		this.client           = client;
 		this.userAgentManager = new UserAgentManager(this);
 
 		this.token = null;
@@ -19,7 +18,7 @@ class ClientAPI {
 		this.userAgentManager.set(info);
 	}
 
-	async makeRequest(method, url, auth, data, file) {
+	makeRequest(method, url, auth, data, file) {
 		let apiRequest = request[method](url);
 
 		if (auth) {
@@ -44,23 +43,41 @@ class ClientAPI {
 			apiRequest.end((err, res) => {
 				if (err) {
 					reject(err);
-				}else {
+				} else {
 					resolve(res.body);
 				}
 			});
 		});
 	}
 
-	async getGateway() {
-		return this
-			.makeRequest('get', Constants.Endpoints.GATEWAY, true)
-			.then(res => res.url);
+	getGateway() {
+		return new Promise((resolve, reject) => {
+			this.makeRequest('get', Constants.Endpoints.GATEWAY, true)
+				.then(res => resolve(res.url))
+				.catch(reject);
+		});
 	}
 
-	async login(email, password) {
-		return this
-			.makeRequest('post', Constants.Endpoints.LOGIN, false, { email, password })
-			.then(data => this.token = data.token);
+	login(login, password) {
+		return new Promise((resolve, reject) => {
+			if (!password) {
+				return this.makeRequest('post', Constants.Endpoints.LOGIN, false, { token: login })
+					.then(data => {
+						this.token = data.token;
+
+						resolve(this.token);
+					})
+					.catch(reject);
+			}
+
+			this.makeRequest('post', Constants.Endpoints.LOGIN, false, { email: login, password })
+				.then(data => {
+					this.token = data.token;
+
+					resolve(this.token);
+				})
+				.catch(reject);
+		});
 	}
 }
 
