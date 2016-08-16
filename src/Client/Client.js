@@ -55,6 +55,7 @@ export default class Client extends EventEmitter {
 		this.options.shardCount = options.shardCount || 0;
 		this.options.disableEveryone = options.disableEveryone || false;
 		this.options.bot = options.bot === undefined || options.bot === true ? true : false;
+		this.options.useNodeOpus = options.useNodeOpus || false;
 
 		if (typeof options.shardCount === "number" && typeof options.shardId === "number" && options.shardCount > 0) {
 			this.options.shard = [options.shardId, options.shardCount];

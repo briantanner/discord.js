@@ -2,20 +2,33 @@
 
 import cpoc from "child_process";
 
+// const opus = require('../../deps/CJOpus/Opus.js');
+
 var opus;
-try {
-	opus = require("node-opus");
-} catch (e) {
-	// no opus!
-}
+
+// var opus;
+// try {
+// 	opus = require("node-opus");
+// } catch (e) {
+// 	// no opus!
+// }
 
 import VolumeTransformer from "./VolumeTransformer";
 
 export default class AudioEncoder {
-	constructor() {
-		if (opus) {
-			this.opus = new opus.OpusEncoder(48000, 2);
+	constructor(useNodeOpus) {
+		if (useNodeOpus) {
+			try {
+				opus = require("node-opus");
+				this.opus = new opus.OpusEncoder(48000, 2);
+			} catch (e) {
+				// no opus!
+			}
+		} else {
+			opus = require('../../deps/opusscript/Opus.js');
+			this.opus = new opus(48000, 2);
 		}
+		
 		this.choice = false;
 		this.sanityCheckPassed = undefined;
 	}

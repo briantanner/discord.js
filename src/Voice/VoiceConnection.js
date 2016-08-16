@@ -33,7 +33,7 @@ export default class VoiceConnection extends EventEmitter {
 		this.vWS = null; // vWS means voice websocket
 		this.ready = false;
 		this.vWSData = {};
-		this.encoder = new AudioEncoder();
+		this.encoder = new AudioEncoder(client.options.useNodeOpus);
 		this.udp = null;
 		this.playingIntent = null;
 		this.playing = false;
@@ -207,11 +207,12 @@ export default class VoiceConnection extends EventEmitter {
 				return;
 			}
 
-			if (!self.encoder.sanityCheck()) {
-				self.playing = false;
-				throw new Error("node-opus sanity check failed! Try re-installing node-opus.");
-				return;
-			}
+			// if (!self.encoder.sanityCheck()) {
+			// 	console.log('!self.encoder.sanityCheck');
+			// 	self.playing = false;
+			// 	throw new Error("node-opus sanity check failed! Try re-installing node-opus.");
+			// 	return;
+			// }
 
 			var buffer = self.encoder.opusBuffer(rawbuffer);
 			var packet = new VoicePacket(buffer, sequence, timestamp, self.vWSData.ssrc, self.secret);
@@ -430,7 +431,7 @@ export default class VoiceConnection extends EventEmitter {
 
 			vWS.on("close", (code) => {
 				self.emit("close", code);
-			})
+			});
 
 		});
 	}
