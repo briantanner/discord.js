@@ -2,16 +2,7 @@
 
 import cpoc from "child_process";
 
-// const opus = require('../../deps/CJOpus/Opus.js');
-
 var opus;
-
-// var opus;
-// try {
-// 	opus = require("node-opus");
-// } catch (e) {
-// 	// no opus!
-// }
 
 import VolumeTransformer from "./VolumeTransformer";
 
