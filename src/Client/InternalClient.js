@@ -21,8 +21,9 @@ import Server from "../Structures/Server";
 import Message from "../Structures/Message";
 import Role from "../Structures/Role";
 import Invite from "../Structures/Invite";
-import VoiceConnection from "../Voice/VoiceConnection";
+// import VoiceConnection from "../Voice/VoiceConnection";
 import TokenCacher from "../Util/TokenCacher";
+import {Apollo, Connection as ApolloConnection} from "node-apollo";
 
 var zlib;
 var libVersion = require('../../package.json').version;
@@ -321,9 +322,15 @@ export default class InternalClient {
 							token = data.d.token;
 							endpoint = data.d.endpoint;
 							if (!token || !endpoint) return;
-							var chan = new VoiceConnection(
-								channel, this.client, session, token, server, endpoint
-							);
+
+							var chan = new ApolloConnection( this.apollo, {
+								channelId: channel.id,
+								sessionId: session.id,
+								guildId: server.id,
+								userId: this.client.user.id,
+								endpoint: endpoint
+							});
+
 							this.voiceConnections.add(chan);
 
 							chan.on("ready", () => resolve(chan));
@@ -526,6 +533,11 @@ export default class InternalClient {
 		.then(url => {
 			self.token = self.client.options.bot && !self.token.startsWith("Bot ") ? `Bot ${self.token}` : self.token;
 			self.createWS(url);
+
+			if (!self.apollo) {
+				self.apollo = new Apollo({ token: this.token });
+			}
+
 			return self.token;
 		});
 	}
