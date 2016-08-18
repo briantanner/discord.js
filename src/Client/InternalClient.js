@@ -325,22 +325,28 @@ export default class InternalClient {
 
 							var chan = new ApolloConnection( this.apollo, {
 								channelId: channel.id,
-								sessionId: session.id,
+								sessionId: session,
 								guildId: server.id,
 								userId: this.client.user.id,
-								endpoint: endpoint
+								endpoint: endpoint,
+								token: token
 							});
 
 							this.voiceConnections.add(chan);
 
-							chan.on("ready", () => resolve(chan));
-							chan.on("error", reject);
-							chan.on("close", reject);
+							// chan.on("ready", () => {
+							// 	console.log('chan ready');
+							// 	resolve(chan)
+							// });
+							// chan.on("error", reject);
+							// chan.on("close", reject);
 
 							if (timeout) {
 								clearTimeout(timeout);
 							}
 							this.client.removeListener("raw", check);
+
+							resolve(chan);
 						}
 					};
 
